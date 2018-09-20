@@ -3,19 +3,19 @@
 // - Total Score Range: 19-120
 
 var crystals = {
-    redGem: {
+    red: {
         value: 0,
         multiplier: 0
     },
-    blueGem: {
+    blue: {
         value: 0,
         multiplier: 0
     },
-    purpleGem: {
+    purple: {
         value: 0,
         multiplier: 0
     },
-    orangeGem: {
+    orange: {
         value: 0,
         multiplier: 0
     }
@@ -28,11 +28,20 @@ var crystalGame = {
     maxCrystalNumber: 12,
     minTotalScore: 19,
     maxTotalScore: 120,
+    targetScore: 0,
+    playerScore: 0,
     
     startGame: function(){
+        this.playerScore = 0;
         this.setCrystalNumbers();
         var maxMultiplier = 12;
         this.generateGameAlgorithm(maxMultiplier);
+        this.resetUI();
+    },
+
+    resetUI: function(){
+        $("#target-score").text(this.targetScore);
+        $("#player-score").text(this.playerScore);
     },
 
     getCrystalData: function(objProperty) {
@@ -79,17 +88,15 @@ var crystalGame = {
 
         // Verify that the total score falls within the acceptable range.
         if (totalScore >= this.minTotalScore && totalScore <= this.maxTotalScore){              
-            console.log("Good score: " + totalScore + " | Max Multiplier: " + maxMultiplier);
+            this.targetScore = totalScore;
             return;
         }
         else if (totalScore > this.maxTotalScore){
             // If score is too high, lower the max multiplier.
-            console.log("Score too high: " + totalScore + " | Max Multiplier: " + maxMultiplier);
             this.generateGameAlgorithm(--maxMultiplier);
         }
         else{
-            // If score is too low, raise the max multiplier.
-            console.log("Score too low: " + totalScore + " | Max Multiplier: " + maxMultiplier);
+            // If score is too low, raise the max multiplier.            
             this.generateGameAlgorithm(++maxMultiplier);
         }
         
@@ -108,9 +115,33 @@ var crystalGame = {
             sum += gemTotal;
         }
         return sum;
+    },
+
+    checkScore: function(crystal){
+        // Update player score.
+        this.playerScore += crystals[crystal].value;
+        
+        $("#player-score").text(this.playerScore);
+        if (this.playerScore === this.targetScore){
+            // Player won
+            this.wins++;
+            $("#result").text("YOU WON!");
+            $("#wins").text(this.wins);
+            this.startGame();
+        }
+        else if (this.playerScore > this.targetScore){
+            // Player loss
+            this.losses++;
+            $("#result").text("YOU LOSS!");
+            $("#losses").text(this.losses);
+            this.startGame();
+        }
     }
 }
 
-// TODO:
-// 1. UI for Gems
-// 2. Function that evaluates game to determine if player has won or loss
+$(".crystal").on("click", function(crystal){
+    var crystal = $(this).attr("data-value");
+    crystalGame.checkScore(crystal);
+})
+
+crystalGame.startGame();
